@@ -6,6 +6,7 @@ import { locale } from './locales'
 import { composerResumeFeature } from './register/composer-resume'
 import { registerContinueNotice } from './register/continue-notice'
 import { heroWorkspaceFeature } from './register/hero-workspace'
+import { registerImageGenerationOverlay } from './register/image-generation-overlay'
 import { registerImPanel } from './register/im-panel'
 import { sidebarNewSessionFeature, ungroupedNewSessionFeature } from './register/new-session'
 import { registerSettingsObstructions } from './register/obstructions'
@@ -19,6 +20,7 @@ export * from './components/panel'
 export * from './components/segmented-control'
 export * from './constants/theme'
 export * from './hooks/use-mount-style'
+export * from './register/image-generation-overlay'
 export type * from './store/modules/sections.types'
 export type * from './store/modules/settings.types'
 export * from './types/remotes'
@@ -46,4 +48,5 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(composerResumeFeature, COMPOSER_RESUME_EFFECT)
   ctx.effect(registerContinueNotice, CONTINUE_NOTICE_EFFECT)
   ctx.effect(registerImPanel, IM_PANEL_EFFECT)
+  ctx.effect(registerImageGenerationOverlay, `${PLUGIN_ID}: image generation overlay`)
 }
