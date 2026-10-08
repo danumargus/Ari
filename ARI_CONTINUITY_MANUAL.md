@@ -1,4 +1,4 @@
-﻿# Ari Continuity Manual
+# Ari Continuity Manual
 
 Last updated: 2026-10-08
 Purpose: precise handoff for any AI or developer continuing Ari without reconstructing prior work.
@@ -433,3 +433,43 @@ To run a real new video job later:
 2. verify `/api/desktop/dsh-tauri-ui/media/video/status` returns `online:true` and `sessionReady:true`
 3. then invoke `generate_video`
 4. the chat card will poll refresh and display real progress
+
+## 21. Kaggle Ollama integration (2026-10-08)
+Ari Core now includes a generic remote Ollama provider package:
+`packages/dsh-ollama-remote`
+
+Current Kaggle provider:
+- provider id: `ollama-kaggle`
+- display name: `Ollama Kaggle`
+- model verified live: `qwen3:8b`
+- dynamic local config: `~/.dsh/ollama-remote/kaggle.json`
+- contextWindow: 4096
+- maxTokens: 1024
+- keepAlive: 45m
+- model discovery uses Ollama `GET /api/tags`
+- inference uses Ollama `POST /api/chat`
+- tool calls are projected into DSH tool-call blocks
+- endpoint credentials are local/private and are not committed
+
+Kaggle runtime:
+- existing kernel recovered: `gustavotorre/ari-ollama-qwen3-8b`
+- previous failure cause: Kaggle image lacked `zstd`, required by the current Ollama installer
+- repaired by installing `zstd` before Ollama
+- kernel runs Ollama behind a local authenticated HTTP proxy
+- Cloudflare Quick Tunnel exposes only the authenticated proxy, not raw unauthenticated Ollama
+- the changing tunnel URL is published separately and saved locally in the dynamic config file
+
+Measured verification:
+- Kaggle kernel reached RUNNING after repair
+- dynamic endpoint announced and saved locally
+- authenticated `/api/tags`: PASS, model `qwen3:8b`
+- `dsh-ollama-remote` isolated build: PASS
+- real adapter end-to-end test: PASS, returned exact marker `KAGGLE_OLLAMA_OK`
+- first real inference was 96.27 s, interpreted as cold model load; do not treat this as warm latency
+- DSH effective config (`--dump-config`) includes `ollama-remote` and `ollama-kaggle/qwen3:8b`
+- Ari cold startup with the first heavy adapter version rose to 43.886 s
+- after removing the unnecessary `@deepseek-ai/dsh-llm` dependency/inheritance and using the adapter contract directly, startup returned to 13.981 s
+
+Design rule:
+Do not reintroduce Gradio/ntfy as the inference transport. Discovery may publish the current endpoint, but inference itself is standard Ollama HTTP through the authenticated tunnel.
+The same `dsh-ollama-remote` package is intended to serve the mobile Ollama provider next.

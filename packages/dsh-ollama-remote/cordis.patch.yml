@@ -1,0 +1,14 @@
+- insert:
+    - id: ollama-remote
+      name: 'dsh-ollama-remote'
+      config:
+        providers:
+          - id: ollama-kaggle
+            name: Ollama Kaggle
+            env: ARI_OLLAMA_KAGGLE_BASE_URL
+            configFile: ~/.dsh/ollama-remote/kaggle.json
+            enabled: true
+            contextWindow: 4096
+            maxTokens: 1024
+            keepAlive: 45m
+            models: [qwen3:8b]
