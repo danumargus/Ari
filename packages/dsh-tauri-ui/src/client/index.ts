@@ -7,6 +7,7 @@ import { composerResumeFeature } from './register/composer-resume'
 import { registerContinueNotice } from './register/continue-notice'
 import { heroWorkspaceFeature } from './register/hero-workspace'
 import { registerImageGenerationOverlay } from './register/image-generation-overlay'
+import { registerVideoGenerationOverlay } from './register/video-generation-overlay'
 import { registerImPanel } from './register/im-panel'
 import { sidebarNewSessionFeature, ungroupedNewSessionFeature } from './register/new-session'
 import { registerSettingsObstructions } from './register/obstructions'
@@ -48,5 +49,6 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(composerResumeFeature, COMPOSER_RESUME_EFFECT)
   ctx.effect(registerContinueNotice, CONTINUE_NOTICE_EFFECT)
   ctx.effect(registerImPanel, IM_PANEL_EFFECT)
-  ctx.effect(registerImageGenerationOverlay, `${PLUGIN_ID}: image generation overlay`)
+  ctx.effect(registerImageGenerationOverlay, PLUGIN_ID + ': image generation overlay')
+  ctx.effect(registerVideoGenerationOverlay, PLUGIN_ID + ': video generation overlay')
 }

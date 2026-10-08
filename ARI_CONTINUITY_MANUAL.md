@@ -369,3 +369,67 @@ A backup of the prior `dist` was created as `dist.backup-ari-image-20261008` bef
 
 Next media step:
 reuse the same job/progress contract for the existing Colab video engine, but keep video as a separate tool/backend because its lifecycle is longer and job-based.
+
+## 20. Video generation integration (2026-10-08)
+Ari Core now has a job-based video integration for the existing Colab/Wan engine. The chat screen is preserved; video generation is added as a tool + progress UI.
+
+Architecture:
+`Ari chat -> generate_video tool -> Ari media/video routes -> standalone Colab bridge (127.0.0.1:8812) -> Colab CLI/session -> Wan 2.2 TI2V-5B worker -> job progress/result`
+
+Important separation:
+- this uses `colab_bridge.py` as a standalone local coordinator
+- it does NOT route through Ariadna Total Bridge
+- the old bridge remains only a donor/reference source for the proven Colab job contract
+- no Colab token/URL is committed to GitHub
+
+Ari host routes added in `dsh-tauri-ui`:
+- `GET /api/desktop/dsh-tauri-ui/media/video/status`
+- `POST /api/desktop/dsh-tauri-ui/media/video/generate`
+- `POST /api/desktop/dsh-tauri-ui/media/video/refresh`
+- `POST /api/desktop/dsh-tauri-ui/media/video/cancel`
+
+Model-facing tool:
+- name: `generate_video`
+- returns quickly with a local job id and initial status
+- generation continues asynchronously in Colab
+- model context receives only compact job metadata, never MP4 bytes
+
+Client UI:
+- `video-generation-overlay.tsx`
+- progress card in the same Ari conversation
+- progress is real job progress from Colab, not an invented percentage
+- shows current phase and completed/total shots
+- supports cancellation through the Ari video cancel route
+
+Verified engine contract:
+- engine: `Wan2.2-TI2V-5B`
+- transport: `colab_cli`
+- modes: text-to-video and image-to-video
+- nominal shot length: 5 seconds
+- fps: 24
+- resolution: 720p
+- continuity: previous-shot last frame
+- GPU class previously reported by persisted runtime: NVIDIA L4
+
+Measured verification on 2026-10-08:
+- standalone `colab_bridge.py` launched successfully on 127.0.0.1:8812
+- bridge `/health`: HTTP 200
+- bridge `/engine/status`: HTTP 200
+- `dsh-tauri-ui` direct `tsdown` build with video integration: PASS
+- `publint`: PASS
+- Ari video status route after deployment: HTTP 200
+
+Critical stale-state fix:
+The persisted Colab runtime snapshot could say `session_ready=true` even when the real Colab CLI session no longer existed. A real job refresh returned `Session 'ariadna-video' not found`.
+Ari now probes `/cli/session/status` and treats the session as unavailable when the CLI output contains `not found`, even if the old snapshot says ready.
+Measured final state after restart:
+- `online: false`
+- `configured: true`
+- `sessionReady: false`
+This is the correct current state and prevents false-green UI and impossible job creation.
+
+To run a real new video job later:
+1. create/reconnect a real Colab session named `ariadna-video`
+2. verify `/api/desktop/dsh-tauri-ui/media/video/status` returns `online:true` and `sessionReady:true`
+3. then invoke `generate_video`
+4. the chat card will poll refresh and display real progress

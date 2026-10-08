@@ -4,6 +4,7 @@ import { setCurrentHostInstance } from './config/runtime'
 import { handlePreStep } from './events/pre-step'
 import { routes } from './routes'
 import { registerImageGenerationTool } from './service/image-tool'
+import { registerVideoGenerationTool } from './service/video-tool'
 
 const ROUTES_EFFECT = `${PLUGIN_ID}: routes`
 
@@ -16,5 +17,6 @@ export function apply(ctx: HostContext): void {
 
   ctx.effect(() => routes(ctx), ROUTES_EFFECT)
   ctx.effect(() => registerImageGenerationTool(ctx), PLUGIN_ID + ': image generation tool')
+  ctx.effect(() => registerVideoGenerationTool(ctx), PLUGIN_ID + ': video generation tool')
   ctx.effect(() => () => setCurrentHostInstance(undefined), RUNTIME_EFFECT)
 }
