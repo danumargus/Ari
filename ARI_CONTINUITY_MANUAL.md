@@ -545,3 +545,37 @@ Current recommended architecture remains:
 `Ari -> dsh-ollama-remote -> ollama-mobile -> ADB forward 127.0.0.1:11439 -> llama.cpp Vulkan -> qwen3:8b`
 
 Do not expose the unauthenticated llama.cpp endpoint on Wi-Fi. ADB remains transport/maintenance fallback until an authenticated direct-LAN path is available.
+
+## 24. Automatic Spanish translation for dynamic UI metadata (2026-10-09)
+Ari's translation plugin now handles not only static shell strings but also dynamic presentation metadata.
+
+Architecture:
+- static shell strings remain in the Spanish locale dictionaries
+- dynamic plugin/extension display text goes through `ctx.locale.resolveText(...)`
+- `ari-translate` wraps that presentation resolver only while `es-ES` is active
+- technical identities remain untouched: package ids, routes, commands, model ids, provider ids and executable names are never rewritten
+- translated strings are cached in `localStorage` so each value is translated once and reused
+
+Automatic backend policy:
+`MyMemory key-free HTTP translation -> persistent local cache -> Ari LLM fallback`
+
+The previous Google translate endpoint experiment was rejected because the current network received automated-query protection responses. MyMemory was tested from Windows and returned `Embedded Browser -> Navegador integrado` successfully.
+
+Live UI verification in Plugins:
+- `Agent Teams` -> `Equipos de agentes`
+- `Auto Authorization Review` -> `Revision de Autorizacion Automatica`
+- `Automation tasks` -> `Tareas de automatizacion`
+- `Voice input` -> `Entrada de voz`
+- plugin descriptions are being translated as well
+- the Plugins page keeps package ids and runtime controls unchanged
+
+Translation page UI was redesigned into a native Ari-style control surface with:
+- a large automatic translation header and global toggle
+- cards for state, engine and identity protection
+- normal mode hides implementation details
+- Advanced contains optional local LibreTranslate endpoint, diagnostics and a manual translation test
+- current normal engine label is `Automatico rapido`
+
+Current limitation:
+- raw skill invocation names are technical identifiers and must remain unchanged
+- skill descriptions and MCP/tool presentation surfaces still need their own safe presentation hooks where those packages bypass `ctx.locale.resolveText`; do not translate invocation ids such as `/skill-name` or tool function names
