@@ -72,4 +72,24 @@
    - **Listing top-level directory items:** Use simple `Get-ChildItem` (NO `-Recurse`).
 
 3. **GIT PROJECT EXEMPTION:**
-   - Always leverage Git index if available: `git ls-files` is exponentially faster than PowerShell directory traversal.
+   - Always leverage Git index if available: `git ls-files` is exponentially faster than PowerShell directory traversal.`r`n`r`n---
+
+## Ari continuity addendum
+
+Before modifying this fork, read `ARI_CONTINUITY_MANUAL.md`.
+
+Canonical Ari fork: `https://github.com/danumargus/Ari.git`
+Active branch: `ariadna-next-es`
+Local Windows checkout: `C:\Users\Gtorr\DSH_LAB\deepseek-harness-desktop`
+
+Ari-specific rules:
+- Keep the public repository clean and reusable. Never commit private memory, credentials, cookies, tokens or personal profiles.
+- Inspect before editing and measure before claiming a fix.
+- Keep providers, memory, affect, identity, mobile and UI separable. Heavy providers must not block core startup.
+- Do not route new Ari work through the frozen `Ariadna_Puente_Total` stack unless explicitly requested.
+- Prefer GitHub Actions for full Rust/release validation because the development PC has limited RAM.
+- Distinguish the live Tauri Nightly runtime from the current Ari source/build.
+- Update `ARI_CONTINUITY_MANUAL.md` after meaningful architectural changes, measured tests, provider-state changes, ports, or priority changes.
+- If a result has not been measured, mark it expected or pending rather than completed.
+
+For project history, verified startup measurements, provider/mobile state, public/private architecture and exact next steps, `ARI_CONTINUITY_MANUAL.md` is the canonical handoff document.
