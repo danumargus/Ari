@@ -46,6 +46,11 @@ type SpawnResult = Result<
 /// 复用配置端口；到期仍未释放才按“真占用”逐级递增。
 const PORT_RELEASE_WAIT: std::time::Duration = std::time::Duration::from_millis(1500);
 
+/// Windows early-exit probe: enough to catch immediate loader crashes without
+/// making every healthy cold start pay the historical 2.5s penalty.
+#[cfg(windows)]
+const EARLY_EXIT_PROBE_WAIT_MS: u32 = 700;
+
 /// 组装启动 Harness 的参数：`[--max-old-space-size] <dsh> --profile <档案>
 /// [--patch <补丁层>] --port <端口> --no-open`。
 ///
@@ -470,6 +475,9 @@ pub async fn launch(app_handle: tauri::AppHandle) -> Result<(), String> {
     if let Err(e) = crate::service::patch::plugin_visibility::apply(&app_handle) {
         log::warn!("plugin visibility patch failed: {e}");
     }
+    if let Err(e) = crate::service::patch::translation::apply(&app_handle) {
+        log::warn!("native translation locale extension unavailable: {e}");
+    }
     mark_phase("core_patches", &mut phase_started);
     // 预防性处理：pnpm 在无 TTY 环境（dsh-market 等子进程）下重装/更新插件时，
     // 清理/重建 node_modules 会触发交互确认并因无 TTY 直接中止
@@ -757,9 +765,9 @@ pub async fn launch(app_handle: tauri::AppHandle) -> Result<(), String> {
             // prepareProfile 重置之后、Include 读取之前」时，新 boot 会把已含
             // bundle 组合行的 root 再叠加同一批 patch → `duplicate loader
             // entry`（实测 exit code 1）。spawn 前重置只覆盖常见窗口，这里在
-            // spawn 后探测 ≤2.5s：命中签名则丢弃实例、重置 profile 根并重试
+            // spawn 后快速探测（Windows 700ms）：命中签名则丢弃实例、重置 profile 根并重试
             //（最多 3 次，第二次 boot 基于干净状态必然成功）；仍在运行则视为
-            // 健康立即放行登记。探测期间最长阻塞 2.5s，之后才返回给调用方。
+            // 健康立即放行登记。健康启动仅阻塞 700ms，之后才返回给调用方。
             let mut attempt = 0u32;
             let mut outcome = spawn_harness();
             loop {
@@ -772,7 +780,7 @@ pub async fn launch(app_handle: tauri::AppHandle) -> Result<(), String> {
                         break;
                     }
                 };
-                let wait = unsafe { WaitForSingleObject(handle, 2500) };
+                let wait = unsafe { WaitForSingleObject(handle, EARLY_EXIT_PROBE_WAIT_MS) };
                 if wait == WAIT_TIMEOUT {
                     // 健康：进程仍在运行，交给下方登记 + 监视线程。
                     outcome = Ok((stdout, stderr, pid, handle));

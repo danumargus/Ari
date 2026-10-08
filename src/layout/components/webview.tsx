@@ -23,10 +23,13 @@ interface NavBridgeMessage {
   type?: string
   collapsed?: boolean
   rows?: unknown
+  available?: boolean
+  enabled?: boolean
 }
 
 export function Webview() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [translation, setTranslation] = useState({ available: false, enabled: false })
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const appearanceCss = useAppearance(iframeRef)
   const post = useIframePost(iframeRef)
@@ -67,12 +70,21 @@ export function Webview() {
   }
 
   useIframeMessage<NavBridgeMessage>(iframeRef, (data) => {
-    if (data.type === 'dsh://sidebar:collapsed') {
+    if (data.type === 'ari://translation:state') {
+      setTranslation({ available: data.available === true, enabled: data.enabled === true })
+    }
+    else if (data.type === 'dsh://sidebar:collapsed') {
       setSidebarCollapsed(Boolean(data.collapsed))
     }
     else if (data.type === 'dsh://shortcuts') {
       setDshShortcuts({ rows: parseShortcutRows(data.rows) })
     }
+  })
+
+  useWatch(live, (ready) => {
+    setTranslation({ available: false, enabled: false })
+    if (ready)
+      post({ type: 'ari://translation:get' })
   })
 
   const renderContent = () => {
@@ -112,7 +124,7 @@ export function Webview() {
     <main className="relative flex flex-col min-h-0 flex-1" style={dshStyle.frame || {}}>
       {/* 挂在 Iframe 外：启动页/预装引导/恢复页先于 Iframe 渲染，否则拿不到透明与调色板 token */}
       <style>{appearanceCss}</style>
-      <Navbar onRemoteChange={handleRemoteChange} sidebarCollapsed={sidebarCollapsed} {...bridge} />
+      <Navbar translationEnabled={translation.enabled} onToggleTranslation={translation.available && live ? () => post({ type: 'ari://translation:set', enabled: !translation.enabled }) : undefined} onRemoteChange={handleRemoteChange} sidebarCollapsed={sidebarCollapsed} {...bridge} />
       <div className="flex min-h-0 flex-1">
         {renderContent()}
       </div>

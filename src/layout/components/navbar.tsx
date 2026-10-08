@@ -4,6 +4,7 @@ import type { ConfigTab } from '@/ui/dialog/config'
 import {
   ArrowRotateRight,
   Copy,
+  Globe,
   LayoutSideContent,
   LayoutSideContentLeft,
   Minus,
@@ -235,10 +236,12 @@ export interface NavbarProps {
   onOpenFolder?: () => void
   /** 显示键盘快捷键：向 iframe 发 `dsh://shortcuts:open`，弹官方 `shortcuts.open` 弹层（官方蒙版）；传入时该项可用 */
   onOpenShortcuts?: () => void
+  translationEnabled?: boolean
+  onToggleTranslation?: () => void
   onViewCommand?: (command: DshViewCommand) => void
 }
 
-export function Navbar({ onRemoteChange, sidebarCollapsed = false, onToggleSidebar, onNewChat, onOpenFolder, onOpenShortcuts, onViewCommand, onOpenMachineManager, onOpenSyncToRemote }: NavbarProps) {
+export function Navbar({ translationEnabled = false, onToggleTranslation, onRemoteChange, sidebarCollapsed = false, onToggleSidebar, onNewChat, onOpenFolder, onOpenShortcuts, onViewCommand, onOpenMachineManager, onOpenSyncToRemote }: NavbarProps) {
   const { t } = useTranslation()
   const isFullscreen = useMacOSFullscreen()
   const isMaximized = useMaximized()
@@ -836,6 +839,20 @@ export function Navbar({ onRemoteChange, sidebarCollapsed = false, onToggleSideb
 
       {/* 「本地」/ 远端机器切换器：SSH 功能启用后才出现（未启用时组件自身不渲染），
           固定在右侧，与左侧的文件/运行/帮助菜单分列两端（macOS 上左侧是「更新可用」chip）。 */}
+      <If cond={onToggleTranslation != null}>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 text-xs"
+          aria-pressed={translationEnabled}
+          aria-label={t('translation.toggle')}
+          data-testid="dsh-navbar-translation"
+          onPress={onToggleTranslation}
+        >
+          <Globe className="size-3.5" aria-hidden />
+          {t('translation.toggle')}
+        </Button>
+      </If>
       <RemoteSwitcher onChange={onRemoteChange} visible={onToggleSidebar != null} onManage={onOpenMachineManager} onSync={onOpenSyncToRemote} />
 
       <If cond={!IS_MACOS}>

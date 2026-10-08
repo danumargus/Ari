@@ -285,5 +285,6 @@
   "network.test_ok": "El proxy funciona ({{ms}} ms)",
   "network.test_timeout": "El proxy no respondió a tiempo",
   "network.test_connect": "No se pudo conectar al proxy. Comprueba la dirección y el puerto.",
-  "network.test_failed": "La prueba del proxy ha fallado"
+  "network.test_failed": "La prueba del proxy ha fallado",
+  "translation.toggle": "Traducir"
 }
