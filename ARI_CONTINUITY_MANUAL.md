@@ -511,3 +511,37 @@ Context policy for the mobile provider:
 - identity/personality/context remain owned by Ari/DSH; the mobile model is only the inference engine
 
 Do not revive the old multi-hop 11435/11437 bridge architecture unless needed for recovery. Prefer the new single provider abstraction and the Vulkan direct path.
+
+## 23. Mobile Vulkan live UI validation and DSH adapter compatibility fix (2026-10-08 late)
+The live DSH runtime had advanced beyond the adapter contract used by the first `dsh-ollama-remote` implementation. A real Ari UI turn failed before provider I/O with `registration.adapter.prepareCall is not a function`.
+
+Compatibility fix in `packages/dsh-ollama-remote/src/index.ts`:
+- added `prepareCall(provider, model, signal)` to bind model resolution and dispatch
+- added `imageRequestPricing()` neutral fallback
+- updated model metadata to the current DSH shape: `context.contextWindow`, `defaultMaxTokens`, `inputModalities`
+- kept the adapter lightweight and did not re-add `@deepseek-ai/dsh-llm` as a heavy package dependency
+
+Measured progression:
+- the old adapter contract failed in Ari UI before inference
+- after the contract fix, Ari reached llama.cpp correctly
+- a Creator-mode request produced 3538 prompt tokens and exceeded the stable phone context of 2048
+- a 4096-context experiment was rejected with forced `-ngl 99` because device memory could not fit it
+- allowing automatic GPU-layer fitting at 4096 made short probes work, but larger Ari prompts crashed the Xiaomi Vulkan/Mesa path with a workgroup-barrier compute-shader error
+- the phone was therefore restored to the previously stable runtime: context 2048, full Vulkan offload with `-ngl 99`, loopback `127.0.0.1:11439`, ADB forward transport
+
+Stable usage rule:
+`ollama-mobile/qwen3:8b` should use DSH `Modo mínimo` for local/mobile inference. Do not use Creator mode as the default for this provider: its large prompt/tool surface defeats the purpose of the 8B phone engine and can exceed the stable context budget.
+
+Final live Ari UI verification:
+- first clean `Modo mínimo` turn returned exact `ARI_MOBILE_MIN_OK`
+- Ari UI reported `Completed in 15s`
+- the same session reported about 167 tokens of working context for the first turn
+- immediate warm second turn returned exact `ARI_MOBILE_WARM_OK`
+- Ari UI reported `Completed in 6s`
+- direct adapter-style short probe also returned exact `MOBILE_STABLE_OK` in 6.09 s at about 3.13 generated tokens/s, with `/no_think` suppressing visible reasoning
+- current Tauri restart reached HTTP 200 on port 3080 in about 10.84 s on this run
+
+Current recommended architecture remains:
+`Ari -> dsh-ollama-remote -> ollama-mobile -> ADB forward 127.0.0.1:11439 -> llama.cpp Vulkan -> qwen3:8b`
+
+Do not expose the unauthenticated llama.cpp endpoint on Wi-Fi. ADB remains transport/maintenance fallback until an authenticated direct-LAN path is available.

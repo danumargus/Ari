@@ -134,14 +134,16 @@ class OllamaRemoteAdapter {
 
   providerRetryPolicy(_provider: string) { return undefined }
 
+  imageRequestPricing(_provider: string, _model: string) { return undefined }
+
   private describe(provider: string, id: string) {
     return {
       provider,
       id,
       name: id,
-      contextWindow: Math.max(512, Number(this.cfg.contextWindow || 4096)),
-      maxTokens: Math.max(64, Number(this.cfg.maxTokens || 1024)),
-      input: ['text'],
+      context: { contextWindow: Math.max(512, Number(this.cfg.contextWindow || 4096)) },
+      defaultMaxTokens: Math.max(64, Number(this.cfg.maxTokens || 1024)),
+      inputModalities: ['text'],
     }
   }
 
@@ -164,6 +166,10 @@ class OllamaRemoteAdapter {
 
   async resolveModel(provider: string, model: string) {
     return this.describe(provider, model)
+  }
+
+  async prepareCall(provider: string, model: string, signal?: AbortSignal) {
+    return { model: await this.resolveModel(provider, model), stream: (options: any) => this.stream({ ...options, signal: options.signal || signal }) }
   }
 
   async *stream(options: any) {
