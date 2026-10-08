@@ -238,6 +238,8 @@ export function SkillsTab({ t, createSkill }: SkillsTabProps): ReactElement {
           {filtered.map((skill) => {
             const tag = policyTag(skill)
             const githubUrl = skill.repository?.githubUrl
+            const translate = (window as Window & { __ARI_TRANSLATE_DYNAMIC__?: (namespace: string, key: string, text: string) => string }).__ARI_TRANSLATE_DYNAMIC__
+            const description = translate?.('skill.metadata', 'description', skill.description) ?? skill.description
             return (
               <Card key={`${skill.source}/${skill.name}`} className="mx-0 flex flex-col gap-[8px] px-[14px] py-[12px]">
                 <div className="flex items-center gap-[6px] flex-wrap">
@@ -245,7 +247,7 @@ export function SkillsTab({ t, createSkill }: SkillsTabProps): ReactElement {
                   <Tag tone="info">{t(SOURCE_LOCALE_KEYS[skill.source] ?? 'sourceCustom')}</Tag>
                   {tag.key && <Tag tone={tag.off ? 'warning' : 'neutral'}>{t(tag.key)}</Tag>}
                 </div>
-                <Card.Description className="text-secondary line-clamp-2" title={skill.description}>{skill.description}</Card.Description>
+                <Card.Description className="text-secondary line-clamp-2" title={description}>{description}</Card.Description>
                 <div className="flex items-center gap-[6px] flex-wrap">
                   {skill.policyEditable && <Switch checked={skill.invocation.modelInvocable || skill.invocation.userInvocable} onChange={() => void doToggle(skill)} label={t('toggleSkill')} title={t('toggleSkillHint')} disabled={busy} />}
                   {skill.dir && <Button variant="ghost" size="sm" onClick={() => void doOpen({ target: 'skill', name: skill.name })}>{t('openFolder')}</Button>}

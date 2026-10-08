@@ -579,3 +579,23 @@ Translation page UI was redesigned into a native Ari-style control surface with:
 Current limitation:
 - raw skill invocation names are technical identifiers and must remain unchanged
 - skill descriptions and MCP/tool presentation surfaces still need their own safe presentation hooks where those packages bypass `ctx.locale.resolveText`; do not translate invocation ids such as `/skill-name` or tool function names
+
+## 25. Skill and MCP presentation translation (2026-10-09)
+The dynamic Spanish translation layer now reaches the Skills surface without changing invocation identity.
+
+Persistent source change:
+- `packages/dsh-tauri-extension/src/client/components/skills-tab.tsx` sends only `skill.description` through `window.__ARI_TRANSLATE_DYNAMIC__`
+- `skill.name` remains untouched because it is the technical invocation id used by `/skill-name`
+- when the translator is unavailable, the original description remains visible
+
+Nightly runtime validation:
+- the precompiled `dsh-tauri-extension/dist/client.cjs` in Tauri Nightly was patched with one exact guarded description expression after a backup
+- Node syntax validation passed
+- Harness returned HTTP 200 after restart
+- live Skills page kept ids such as `diagnose-windows-sandbox-acl`, `find-skills`, `genui` and `skill-creator` unchanged while their human descriptions appeared in Spanish
+- the translation cache drains cards progressively; untranslated text safely remains original until its cached translation arrives
+
+MCP safety rule:
+- the MCP panel currently exposes dynamic `serverName`, command/args or URL values as technical identity, so those values are intentionally never translated
+- static MCP presentation copy is handled by Ari's normal locale fallback and automatic translation layer; live verification showed the panel description and empty-state copy changing to Spanish while no MCP server identity was modified
+- if future MCP metadata gains a separate human `title` or `description`, translate only that presentation field, never the server id/tool prefix/command/URL
