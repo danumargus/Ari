@@ -473,3 +473,41 @@ Measured verification:
 Design rule:
 Do not reintroduce Gradio/ntfy as the inference transport. Discovery may publish the current endpoint, but inference itself is standard Ollama HTTP through the authenticated tunnel.
 The same `dsh-ollama-remote` package is intended to serve the mobile Ollama provider next.
+## 22. Mobile Qwen/Vulkan integration (2026-10-08)
+Ari now uses the same `dsh-ollama-remote` package for the phone, but with a dedicated `llama-cpp` protocol instead of the slower classic Ollama-over-ADB path.
+
+Measured phone state:
+- device: Xiaomi 12 Pro / model `2201122G`, serial `f65e03c8`
+- phone LAN IP observed: `192.168.1.138`
+- model blob present in Termux: Qwen3 8B, about 5.2 GB
+- fast runtime binary: Termux Ollama bundled `llama-server`
+- launcher: `C:\Users\Gtorr\Ariadna_Puente_Total\tools\start-llama-direct-mobile.sh`
+- phone server: `127.0.0.1:11439`
+- runtime: llama.cpp with Vulkan enabled
+- model health after load: `/health` returned `{status: ok}`
+
+Measured verification:
+- direct llama.cpp `/completion` probe through temporary USB forward: PASS
+- first measured probe in this work: 9.76 s for a 16-token capped request
+- DSH adapter end-to-end probe: PASS, returned exact marker `MOBILE_DSH_OK`
+- DSH adapter measured time: 7.77 s
+- effective DSH profile contains `ollama-mobile`, protocol `llama-cpp`, model `qwen3:8b`
+- Ari runtime restarted successfully after the change; measured startup ready time 17,454 ms on this run
+
+Architecture:
+`Ari -> dsh-ollama-remote -> ollama-mobile -> llama.cpp /completion -> Qwen3 8B on phone Vulkan`
+
+Current transport note:
+- the phone server currently binds loopback and Windows reaches it through a temporary ADB forward on port 11439
+- this is deliberately safer than exposing an unauthenticated llama.cpp server to the LAN
+- ADB is therefore still used only as the local transport/maintenance fallback for this runtime
+- preferred future transport is direct LAN only after the installed llama.cpp build is confirmed to support authenticated access; do not expose 11439 unauthenticated on Wi-Fi
+
+Context policy for the mobile provider:
+- context window 2048
+- max output tokens 256
+- the adapter converts the DSH conversation to ChatML
+- `/no_think` is injected at the transport layer so Qwen3 does not expose chain-of-thought style reasoning text
+- identity/personality/context remain owned by Ari/DSH; the mobile model is only the inference engine
+
+Do not revive the old multi-hop 11435/11437 bridge architecture unless needed for recovery. Prefer the new single provider abstraction and the Vulkan direct path.

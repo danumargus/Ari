@@ -12,3 +12,11 @@
             maxTokens: 1024
             keepAlive: 45m
             models: [qwen3:8b]
+          - id: ollama-mobile
+            name: Ollama Mobile Vulkan
+            baseUrl: http://127.0.0.1:11439
+            protocol: llama-cpp
+            enabled: true
+            contextWindow: 2048
+            maxTokens: 256
+            models: [qwen3:8b]

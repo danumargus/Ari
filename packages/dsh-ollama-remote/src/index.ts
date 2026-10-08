@@ -13,7 +13,9 @@ interface ProviderConfig {
   keepAlive?: string
   models?: string[]
   configFile?: string
+  protocol?: 'ollama' | 'llama-cpp'
 }
+
 
 interface PluginConfig { providers?: ProviderConfig[] }
 
@@ -90,6 +92,25 @@ function safeJson(value: string): any {
   try { return JSON.parse(value) } catch { return {} }
 }
 
+
+function chatmlPrompt(messages: readonly any[]): string {
+  const rows = ollamaMessages(messages)
+  const out: string[] = []
+  let sawSystem = false
+  for (const row of rows) {
+    const role = String(row?.role || '')
+    if (!['system', 'user', 'assistant'].includes(role)) continue
+    let content = String(row?.content || '')
+    if (role === 'system') {
+      sawSystem = true
+      if (!content.includes('/no_think')) content += '\n/no_think'
+    }
+    out.push(`<|im_start|>${role}\n${content}<|im_end|>\n`)
+  }
+  if (!sawSystem) out.unshift('<|im_start|>system\n/no_think<|im_end|>\n')
+  out.push('<|im_start|>assistant\n<think>\n\n</think>\n\n')
+  return out.join('')
+}
 function ollamaTools(tools: readonly any[] | undefined): any[] | undefined {
   if (!Array.isArray(tools) || !tools.length) return undefined
   return tools.map((tool: any) => ({
@@ -127,7 +148,7 @@ class OllamaRemoteAdapter {
   async listModels(provider: string) {
     const conn = this.connection()
     const base = conn.baseUrl
-    if (!base) return conn.models.map(id => this.describe(provider, id))
+    if (!base || this.cfg.protocol === 'llama-cpp') return conn.models.map(id => this.describe(provider, id))
     try {
       const res = await fetch(base + '/api/tags', { headers: conn.token ? { Authorization: 'Bearer ' + conn.token } : {}, signal: AbortSignal.timeout(8000) })
       if (!res.ok) throw new Error('HTTP ' + res.status)
@@ -149,6 +170,49 @@ class OllamaRemoteAdapter {
     const conn = this.connection()
     const base = conn.baseUrl
     if (!base) throw llmError('Ollama remote endpoint is not configured', 'SERVER')
+
+    if (this.cfg.protocol === 'llama-cpp') {
+      const body = {
+        prompt: chatmlPrompt(options.messages),
+        n_predict: Math.max(16, Math.min(Number(options.maxTokens || this.cfg.maxTokens || 256), Number(this.cfg.maxTokens || 256))),
+        temperature: options.temperature === undefined ? 0.5 : Number(options.temperature),
+        stream: false,
+        cache_prompt: true,
+        stop: ['<|im_end|>'],
+      }
+      let res: Response
+      try {
+        res = await fetch(base + '/completion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(conn.token ? { Authorization: 'Bearer ' + conn.token } : {}) },
+          body: JSON.stringify(body),
+          signal: options.signal,
+        })
+      } catch (error) {
+        if (options.signal?.aborted) throw llmError('Request aborted', 'ABORTED')
+        throw llmError('llama.cpp connection failed: ' + String(error), 'SERVER')
+      }
+      if (!res.ok) {
+        const detail = await res.text().catch(() => '')
+        throw llmError('llama.cpp HTTP ' + res.status + ': ' + detail.slice(0, 400), res.status >= 500 ? 'SERVER' : 'INVALID_REQUEST')
+      }
+      const data: any = await res.json()
+      const text = String(data?.content || '').trim()
+      if (text) {
+        yield { type: 'block-start', index: 0, blockType: 'text' }
+        yield { type: 'text-delta', index: 0, text }
+        yield { type: 'block-end', index: 0, block: { type: 'text', text } }
+      }
+      const inputTokens = Number(data?.tokens_evaluated || 0)
+      const outputTokens = Number(data?.tokens_predicted || 0)
+      yield { type: 'usage', usage: { inputTokens, outputTokens, totalTokens: inputTokens + outputTokens } }
+      if (!text) {
+        yield { type: 'finish', reason: { kind: 'error', failure: { message: 'llama.cpp returned an empty response', code: 'EMPTY_RESPONSE' } } }
+        return
+      }
+      yield { type: 'finish', reason: { kind: 'stop' } }
+      return
+    }
 
     const tools = ollamaTools(options.tools)
     const body = {
