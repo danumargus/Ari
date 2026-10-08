@@ -21,20 +21,30 @@ export const languageDetector: LanguageDetectorModule = {
       return selectedLanguage
 
     // If no saved language, use device locale or fallback
-    const deviceLocale = navigator.language.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en-US'
+    const navigatorLocale = navigator.language.toLowerCase()
+    const deviceLocale = navigatorLocale.startsWith('zh')
+      ? 'zh-CN'
+      : navigatorLocale.startsWith('es')
+        ? 'es-ES'
+        : 'en-US'
 
     // try exact locale match first
     if (deviceLocale in resources)
       selectedLanguage = deviceLocale
     else
-      selectedLanguage = 'zh-CN'
+      selectedLanguage = 'en-US'
 
     return selectedLanguage
   },
   cacheUserLanguage: (language: string) => {
     localStorage?.setItem(LANGUAGE_STORAGE_KEY, language)
     store.setting.language = language
-    invoke('set_language', { lang: language.startsWith('zh') ? 'zh' : 'en' }).catch((err) => {
+    const backendLanguage = language.startsWith('zh')
+      ? 'zh'
+      : language.startsWith('es')
+        ? 'es'
+        : 'en'
+    invoke('set_language', { lang: backendLanguage }).catch((err) => {
       console.warn('[i18n] failed to persist language to backend:', err)
     })
   },

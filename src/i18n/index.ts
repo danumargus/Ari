@@ -9,6 +9,7 @@ export const i18n = i18next
   .init({
     fallbackLng: {
       'en-*': ['en-US'],
+      'es-*': ['es-ES', 'en-US'],
       'zh-*': ['zh-CN'],
       'default': ['en-US'],
     },

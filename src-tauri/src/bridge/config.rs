@@ -144,6 +144,7 @@ pub fn set_language(app_handle: AppHandle, lang: String) {
     config::set_store_dat_setting(&app_handle, setting);
     config::i18n::set_language(match lang.as_str() {
         "en" | "en-US" => config::i18n::Lang::En,
+        "es" | "es-ES" => config::i18n::Lang::Es,
         _ => config::i18n::Lang::Zh,
     });
     #[cfg(target_os = "macos")]

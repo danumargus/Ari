@@ -376,6 +376,7 @@ export function ConfigDebug() {
               <ListBox>
                 <ListBox.Item data-testid="dsh-config-language-option-zh" className="min-h-8!" id="zh-CN" textValue={t('ui.languages.zh')}>{t('ui.languages.zh')}</ListBox.Item>
                 <ListBox.Item data-testid="dsh-config-language-option-en" className="min-h-8!" id="en-US" textValue={t('ui.languages.en')}>{t('ui.languages.en')}</ListBox.Item>
+                <ListBox.Item data-testid="dsh-config-language-option-es" className="min-h-8!" id="es-ES" textValue={t('ui.languages.es')}>{t('ui.languages.es')}</ListBox.Item>
               </ListBox>
             </Select.Popover>
           </Select>

@@ -4,25 +4,27 @@ use std::sync::atomic::{AtomicU8, Ordering};
 pub enum Lang {
     Zh,
     En,
+    Es,
 }
 
-static CURRENT_LANG: AtomicU8 = AtomicU8::new(0); // 0 = zh, 1 = en
+static CURRENT_LANG: AtomicU8 = AtomicU8::new(0); // 0 = zh, 1 = en, 2 = es
 
 pub fn set_language(lang: Lang) {
     CURRENT_LANG.store(
         match lang {
             Lang::Zh => 0,
             Lang::En => 1,
+            Lang::Es => 2,
         },
         Ordering::SeqCst,
     );
 }
 
 fn lang() -> Lang {
-    if CURRENT_LANG.load(Ordering::SeqCst) == 1 {
-        Lang::En
-    } else {
-        Lang::Zh
+    match CURRENT_LANG.load(Ordering::SeqCst) {
+        1 => Lang::En,
+        2 => Lang::Es,
+        _ => Lang::Zh,
     }
 }
 
@@ -32,6 +34,7 @@ pub fn t(key: &str) -> String {
         "install.extracting" => ("正在解压", "Extracting"),
         "install.done" => ("依赖已安装完毕", "Dependencies installed"),
         "menu.run" => ("运行与管理", "Run & Manage"),
+        "tray.open_panel" => ("打开面板", "Open Panel"),
         "menu.application" => ("应用", "Application"),
         "menu.profiles" => ("档案管理…", "Manage Profiles…"),
         "menu.plugins" => ("插件管理…", "Manage Plugins…"),
@@ -84,8 +87,65 @@ pub fn t(key: &str) -> String {
         "menu.select_all" => ("全选", "Select All"),
         _ => (key, key),
     };
+
     match lang() {
         Lang::Zh => zh.to_string(),
         Lang::En => en.to_string(),
+        Lang::Es => match key {
+            "install.downloading" => "Descargando",
+            "install.extracting" => "Extrayendo",
+            "install.done" => "Dependencias instaladas",
+            "menu.run" => "Ejecutar y gestionar",
+            "tray.open_panel" => "Abrir panel",
+            "menu.application" => "Aplicación",
+            "menu.profiles" => "Gestionar perfiles…",
+            "menu.plugins" => "Gestionar plugins…",
+            "menu.harness" => "Gestionar núcleo…",
+            "menu.help" => "Ayuda",
+            "menu.file" => "Archivo",
+            "menu.new_window" => "Nueva ventana",
+            "menu.new_chat" => "Nuevo chat",
+            "menu.open_folder" => "Abrir carpeta",
+            "menu.close" => "Cerrar",
+            "menu.quit" => "Salir",
+            "menu.documentation" => "Documentación",
+            "menu.desktop_feedback" => "Comentarios sobre Desktop",
+            "menu.harness_feedback" => "Comentarios oficiales de DeepSeek Harness",
+            "menu.settings" => "Ajustes…",
+            "menu.services" => "Servicios",
+            "menu.hide" => "Ocultar",
+            "menu.hide_others" => "Ocultar los demás",
+            "menu.show_all" => "Mostrar todo",
+            "menu.view" => "Ver",
+            "menu.toggle_sidebar" => "Mostrar/ocultar barra lateral",
+            "menu.toggle_right_panel" => "Mostrar/ocultar panel derecho",
+            "menu.open_terminal" => "Abrir terminal",
+            "menu.search_chats" => "Buscar chats",
+            "menu.zoom_in" => "Ampliar",
+            "menu.zoom_out" => "Reducir",
+            "menu.actual_size" => "Tamaño real",
+            "menu.window" => "Ventana",
+            "menu.minimize" => "Minimizar",
+            "menu.zoom" => "Maximizar",
+            "menu.bring_all_to_front" => "Traer todo al frente",
+            "menu.keyboard_shortcuts" => "Mostrar atajos de teclado",
+            "menu.enter_fullscreen" => "Entrar en pantalla completa",
+            "menu.exit_fullscreen" => "Salir de pantalla completa",
+            "menu.about" => "Acerca de Desktop",
+            "menu.toggle_devtools" => "Alternar herramientas de desarrollo",
+            "menu.task_manager" => "Administrador de tareas",
+            "menu.run_logs" => "Registros de ejecución",
+            "menu.check_update" => "Buscar actualizaciones",
+            "menu.restart" => "Reiniciar Harness",
+            "menu.edit" => "Editar",
+            "menu.undo" => "Deshacer",
+            "menu.redo" => "Rehacer",
+            "menu.cut" => "Cortar",
+            "menu.copy" => "Copiar",
+            "menu.paste" => "Pegar",
+            "menu.select_all" => "Seleccionar todo",
+            _ => en,
+        }
+        .to_string(),
     }
 }

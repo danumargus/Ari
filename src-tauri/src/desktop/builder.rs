@@ -195,8 +195,20 @@ pub fn tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
     let menu = Menu::with_items(
         app,
         &[
-            &MenuItem::with_id(app, "open", "打开面板", true, None::<&str>)?,
-            &MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?,
+            &MenuItem::with_id(
+                app,
+                "open",
+                crate::config::i18n::t("tray.open_panel"),
+                true,
+                None::<&str>,
+            )?,
+            &MenuItem::with_id(
+                app,
+                "quit",
+                crate::config::i18n::t("menu.quit"),
+                true,
+                None::<&str>,
+            )?,
         ],
     )?;
 
@@ -255,6 +267,7 @@ pub fn install_macos_menu(app: &tauri::AppHandle<Wry>) -> tauri::Result<()> {
     let setting = crate::config::get_store_dat_setting(app);
     crate::config::i18n::set_language(match setting.language.as_str() {
         "en" | "en-US" => crate::config::i18n::Lang::En,
+        "es" | "es-ES" => crate::config::i18n::Lang::Es,
         _ => crate::config::i18n::Lang::Zh,
     });
 
