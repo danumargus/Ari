@@ -248,6 +248,8 @@ export function SkillsTab({ t, createSkill }: SkillsTabProps): ReactElement {
                   {tag.key && <Tag tone={tag.off ? 'warning' : 'neutral'}>{t(tag.key)}</Tag>}
                 </div>
                 <Card.Description className="text-secondary line-clamp-2" title={description}>{description}</Card.Description>
+                {skill.whenToUse && <Text size="sm" tone="tertiary">{skill.whenToUse}</Text>}
+                {skill.invocation.userInvocable && <div className="rounded-[8px] border border-border-l2 bg-layer-1 px-[9px] py-[6px] [font-family:var(--ds-font-family-code)] text-[12px] text-secondary">/{skill.name}</div>}
                 <div className="flex items-center gap-[6px] flex-wrap">
                   {skill.policyEditable && <Switch checked={skill.invocation.modelInvocable || skill.invocation.userInvocable} onChange={() => void doToggle(skill)} label={t('toggleSkill')} title={t('toggleSkillHint')} disabled={busy} />}
                   {skill.dir && <Button variant="ghost" size="sm" onClick={() => void doOpen({ target: 'skill', name: skill.name })}>{t('openFolder')}</Button>}

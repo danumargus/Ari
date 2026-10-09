@@ -1,6 +1,6 @@
 # Ari Continuity Manual
 
-Last updated: 2026-10-08
+Last updated: 2026-10-09
 Purpose: precise handoff for any AI or developer continuing Ari without reconstructing prior work.
 
 ## 1. What Ari is
@@ -599,3 +599,114 @@ MCP safety rule:
 - the MCP panel currently exposes dynamic `serverName`, command/args or URL values as technical identity, so those values are intentionally never translated
 - static MCP presentation copy is handled by Ari's normal locale fallback and automatic translation layer; live verification showed the panel description and empty-state copy changing to Spanish while no MCP server identity was modified
 - if future MCP metadata gains a separate human `title` or `description`, translate only that presentation field, never the server id/tool prefix/command/URL
+
+## 26. Right-console browser, personality/affect, skills and MCP cards (2026-10-09)
+This block extends Ari without replacing the mature DSH chat surface.
+
+### Browser in the right console
+The official DSH right-sidebar Browser is enabled in the active profile and was verified live inside Tauri as a docked panel beside the conversation. It has its own tab/address controls and stays inside Ari instead of opening a separate browser window.
+
+Presentation rule:
+- use the official right sidebar Browser as the visible browsing surface
+- keep the panel in normal `push` mode for the Work-style split view
+- fullscreen remains optional through the stock sidebar controls
+
+Do not build a second custom browser panel unless the official surface proves insufficient.
+
+### Personality
+`dsh-soul-md` `0.10.0` is the single personality/identity authority. It explicitly supports DSH `0.2.0-rc.2` and is running in the active profile.
+
+Live UI verification showed:
+- editable Markdown persona cards
+- save/edit/delete card flow
+- default persona selector
+- per-workspace persona selection
+- per-session `Persona` selector in the conversation header
+- plugin-managed long-term memory controls
+
+Avoid installing another prompt/personality rewriter in parallel with Soul.
+
+### Affect
+Ari Core now contains `packages/dsh-ari-affect`, a lightweight observational affect module written for DSH 0.2.x.
+
+State dimensions:
+- valence
+- arousal
+- trust
+- curiosity
+- confidence
+- fatigue
+
+Behavior:
+- reacts softly to user/assistant session events and tool success/error outcomes
+- persists only compact numeric state under `~/.dsh/ari-affect/state.json`
+- exposes model-facing `affect_status`
+- does not treat affect telemetry as facts about the user
+- prompt injection is OFF by default
+
+Configuration fields:
+- `enabled`
+- `sensitivity`
+- `decay`
+- `inject`
+- `order`
+
+A handwritten `client.js`, following the same public `configForms` + `plugins.bundle.config` seam used by Soul, provides a simple configuration UI for those fields. The running client catalog does not discover a newly added client module from a plain Ctrl+R/hot toggle, so this form is expected to become visible on the next normal client startup. Host-side Affect itself was toggled live and verified `Running`.
+
+### Browser router separation
+`packages/dsh-browser-router` remains the tool/backend router for local/mobile/cloud CDP navigation, but it is now decoupled from Tauri UI services.
+
+Current rule:
+`official DSH Browser sidebar = visible UI`
+`dsh-browser-router = lightweight model/tool navigation backend`
+
+The router no longer imports `dsh-tauri`, no longer owns experimental HTTP routes, and injects only `tools`. Standalone import smoke testing passed and the plugin was toggled live to `Running` after the refactor.
+
+### User skills and card presentation
+Ari's private/user skill layer now includes:
+- `/human` - humanize Spanish/English writing while preserving technical facts, commands, paths and intent
+- `/brainstorm` - explore intent and design before implementation
+- `/debug` - root-cause-first systematic debugging
+- `/plan` - turn requirements into an executable implementation plan
+- `/review` - review completed work against requirements and risk
+- `/verify` - require fresh evidence before claiming completion
+
+These skills live under `~/.dsh/skills/`; they are not committed as Gus-specific content to the public Ari repository.
+
+The public Extensions/Skills card UI now shows:
+- the technical skill id unchanged
+- its human description
+- `whenToUse` guidance when available
+- a visible monospace `/skill-name` capsule when user-invocable
+
+Live verification showed `/human`, `/brainstorm`, `/debug`, `/plan`, `/review` and `/verify` cards with their guidance. Invocation ids are never translated.
+
+### MCP cards and ports
+The MCP manager was kept on its existing Extensions/MCP screen rather than adding another unverified right-sidebar surface.
+
+Ari imported two real MCP definitions from existing agent configuration:
+- `legado_local_bridge` - stdio; displayed as `STDIO / sin puerto TCP`
+- `penpot` - streamable HTTP over HTTPS; displayed as `Puerto 443`
+
+The unrelated Codex `node_repl` MCP was intentionally not imported.
+
+MCP cards now show transport, enabled state, address/command summary, explicit port semantics, and the existing Check / Enable-disable / Edit / Delete actions.
+
+Measured connectivity through the same host endpoint used by the UI:
+- `legado_local_bridge`: `ok=true`
+- `penpot`: `ok=true`; the generic reachability probe detail was HTTP 400, which the checker classifies as reachable because the endpoint answered without a full MCP handshake
+
+Never commit MCP tokens, headers or private bridge paths to public Ari source.
+
+### Runtime/source note
+For immediate live validation, the installed Nightly `dsh-tauri-extension/dist/client.cjs` was patched after backups so the new skill command capsules/when-to-use text and MCP port labels could be inspected without building the whole plugin. Those runtime patches are validation aids only; source files in the repository are authoritative for the next normal build.
+
+### Validation and startup note
+- `dsh-ari-affect` standalone JS import/syntax smoke test: PASS
+- `dsh-browser-router` standalone import after Tauri decoupling: PASS
+- `git diff --check` on the feature paths: PASS
+- lockfile-only refresh with scripts disabled: PASS, 20 workspace projects
+- full plugin TypeScript typecheck was NOT completed in this block because the earlier `tsc` attempt exhausted memory on the ~6 GB machine; do not claim it passed
+- no plugin build was run during this work
+
+One recovery startup during this work took about 101.9 s after a singleton/zombie-runtime incident and a temporary UTF-8 BOM manifest error. The manifest error was fixed, but that long startup must not be attributed to Affect or Browser Router without a clean controlled A/B measurement.

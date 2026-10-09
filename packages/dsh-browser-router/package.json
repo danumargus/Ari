@@ -1,0 +1,22 @@
+{
+  "name": "dsh-browser-router",
+  "version": "0.1.0",
+  "description": "Ari browser router for local, mobile and cloud CDP backends",
+  "type": "module",
+  "license": "MIT",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "cordis.patch.yml"],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.0 <0.3.0"
+  }
+}

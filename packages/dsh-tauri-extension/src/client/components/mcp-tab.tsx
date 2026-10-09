@@ -15,6 +15,19 @@ import { McpImportDialog } from './mcp-import-dialog'
 import { mapToPairs, parseMcpJson, parsePairs } from './mcp-tab.utils'
 import { failText } from './outcome.utils'
 
+function mcpPort(row: McpRow): string {
+  if (row.transport !== 'streamable-http' || !row.url)
+    return 'STDIO / sin puerto TCP'
+  try {
+    const url = new URL(row.url)
+    const port = url.port || (url.protocol === 'https:' ? '443' : url.protocol === 'http:' ? '80' : '')
+    return port ? `Puerto ${port}` : 'Puerto no indicado'
+  }
+  catch {
+    return 'Puerto no disponible'
+  }
+}
+
 export function McpTab({ t }: McpTabProps): ReactElement {
   const [servers, setServers] = useState<McpRow[] | null>(null)
   const [editor, setEditor] = useState<McpEditorState | null>(null)
@@ -328,6 +341,7 @@ export function McpTab({ t }: McpTabProps): ReactElement {
               <Card.Description className="text-secondary line-clamp-2">
                 {row.transport === 'stdio' ? `${row.command ?? ''} ${(row.args ?? []).join(' ')}` : row.url ?? ''}
               </Card.Description>
+              <Text size="sm" tone="tertiary">{mcpPort(row)}</Text>
               {row.shadowed === true && <Text tone="error">{t('shadowedByGlobal')}</Text>}
               {globalError !== '' && <Text tone="error">{globalError}</Text>}
               <div className="flex items-center gap-[6px] flex-wrap">
