@@ -210,3 +210,34 @@ describe('defineLocale', () => {
     defineLocale('probe-bad', { zh: { a: 'a' }, en: {} })
   })
 })
+
+describe('spanish locale contract', () => {
+  it('registers Spanish aliases and preserves interpolation values', async () => {
+    const { mod, fake, ctx } = await setup()
+    const spanish = mod.defineLocale('es-probe', {
+      zh: { greeting: '你好', tool: '工具 {name}' },
+      en: { greeting: 'Hello', tool: 'Tool {name}' },
+      es: { greeting: 'Hola', tool: 'Herramienta {name}' },
+    })
+    const dispose = spanish.registerLocale(ctx)
+    for (const id of ['es', 'es-ES']) {
+      fake.setLocale(id)
+      expect(spanish.text('greeting')).toBe('Hola')
+      expect(spanish.text('tool', { name: 'diagnose-windows-sandbox-acl' })).toBe('Herramienta diagnose-windows-sandbox-acl')
+    }
+    dispose()
+    expect(fake.dicts.get('es-probe')?.size).toBe(0)
+    expect(fake.listeners.size).toBe(0)
+    expect(spanish.text('greeting')).toBe('Hola')
+  })
+
+  it('falls back to English for an unsupported locale before registration', async () => {
+    const { mod, fake, ctx } = await setup()
+    const bridge = mod.defineLocale('bridge', { zh: { a: '中' }, en: { a: 'English' } })
+    const dispose = bridge.registerLocale(ctx)
+    fake.setLocale('fr-FR')
+    const unregistered = mod.defineLocale('unregistered', { zh: { a: '中' }, en: { a: 'English' } })
+    expect(unregistered.text('a')).toBe('English')
+    dispose()
+  })
+})

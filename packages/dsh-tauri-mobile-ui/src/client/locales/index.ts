@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../../shared/constants'
+import { es } from './es'
 
 const zh = {
   'toggle.open': '打开侧边栏',
@@ -27,4 +28,4 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
   }
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

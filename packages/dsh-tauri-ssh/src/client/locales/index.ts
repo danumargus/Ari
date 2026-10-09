@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../constants/index'
+import { es } from './es'
 
 export const zh = {
   'nav': '服务器',
@@ -243,4 +244,4 @@ export const en: Record<keyof typeof zh, string> = {
   'install.done.error': 'Installed, but copying credentials failed: ',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

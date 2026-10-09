@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../constants'
+import { es } from './es'
 
 const zh = {
   'scheduler': '定时任务',
@@ -249,4 +250,4 @@ const en: Record<LocaleKey, string> = {
   'perWeek': 'Weekly',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

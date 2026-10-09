@@ -1,5 +1,6 @@
 import type { McpImportItem, ParsedMcpJson } from './mcp-tab.types'
 import { isEmpty, omitBy, orderBy, uniq } from 'dsh-tauri/client'
+import { locale } from '../locales'
 
 export function importGroups(items: McpImportItem[]): Array<{ agent: string, label: string, items: Array<{ item: McpImportItem, index: number }> }> {
   const label = (agent: string): string => agent === 'claude-code' ? 'Claude Code' : agent === 'codex' ? 'Codex' : agent === 'cursor' ? 'Cursor' : agent === 'gemini' ? 'Gemini CLI' : agent
@@ -38,20 +39,20 @@ export function parseMcpJson(text: string): ParsedMcpJson | { error: string } {
     parsed = JSON.parse(text)
   }
   catch {
-    return { error: 'not valid JSON' }
+    return { error: locale.text('mcpJsonInvalid') }
   }
   if (typeof parsed !== 'object' || parsed === null)
-    return { error: 'expected a JSON object' }
+    return { error: locale.text('mcpJsonObject') }
   let record = parsed as Record<string, unknown>
   let nameFromWrapper: string | undefined
   const wrapped = record.mcpServers ?? record.mcp_servers ?? record.servers
   if (typeof wrapped === 'object' && wrapped !== null && !Array.isArray(wrapped)) {
     const first = Object.entries(wrapped as Record<string, unknown>)[0]
     if (first === undefined)
-      return { error: 'mcpServers object is empty' }
+      return { error: locale.text('mcpJsonEmpty') }
     nameFromWrapper = first[0]
     if (typeof first[1] !== 'object' || first[1] === null)
-      return { error: 'server entry is not an object' }
+      return { error: locale.text('mcpJsonEntry') }
     record = first[1] as Record<string, unknown>
   }
   const stringMap = (value: unknown): Record<string, string> | undefined => {
@@ -71,9 +72,9 @@ export function parseMcpJson(text: string): ParsedMcpJson | { error: string } {
     ? 'stdio'
     : url !== undefined ? 'streamable-http' : httpDeclared ? 'streamable-http' : 'stdio'
   if (transport === 'stdio' && command === undefined)
-    return { error: 'stdio config needs a "command" field' }
+    return { error: locale.text('mcpJsonCommand') }
   if (transport === 'streamable-http' && url === undefined)
-    return { error: 'http config needs a "url" field' }
+    return { error: locale.text('mcpJsonUrl') }
   const serverName = nameFromWrapper
     ?? (typeof record.serverName === 'string' ? record.serverName : undefined)
     ?? (typeof record.name === 'string' && record.name !== '@deepseek-ai/dsh-mcp-client' ? record.name : undefined)

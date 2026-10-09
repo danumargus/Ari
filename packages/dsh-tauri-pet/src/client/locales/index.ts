@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../../shared/constants'
+import { es } from './es'
 
 /** 桌宠设置分区的双语文案（`zh` 键集合为权威，`en` 缺键即编译错误）。 */
 const zh = {
@@ -72,4 +73,4 @@ const en: Record<keyof typeof zh, string> = {
   xwaylandRestart: 'Saved. Takes effect after the app restarts.',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

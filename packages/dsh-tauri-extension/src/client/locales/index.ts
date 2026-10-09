@@ -1,7 +1,14 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../constants'
+import { es } from './es'
 
 const zh = {
+  mcpJsonInvalid: 'JSON 无效',
+  mcpJsonObject: '需要 JSON 对象',
+  mcpJsonEmpty: 'mcpServers 对象为空',
+  mcpJsonEntry: '服务器条目不是对象',
+  mcpJsonCommand: 'stdio 配置需要 "command" 字段',
+  mcpJsonUrl: 'http 配置需要 "url" 字段',
   extension: '插件扩展',
   pluginsTab: '插件',
   skillsTab: '技能',
@@ -112,6 +119,12 @@ const zh = {
 type LocaleKey = keyof typeof zh
 
 const en: Record<LocaleKey, string> = {
+  mcpJsonInvalid: 'not valid JSON',
+  mcpJsonObject: 'expected a JSON object',
+  mcpJsonEmpty: 'mcpServers object is empty',
+  mcpJsonEntry: 'server entry is not an object',
+  mcpJsonCommand: 'stdio config needs a "command" field',
+  mcpJsonUrl: 'http config needs a "url" field',
   extension: 'Plugin Extensions',
   pluginsTab: 'Plugins',
   skillsTab: 'Skills',
@@ -219,4 +232,4 @@ const en: Record<LocaleKey, string> = {
   shadowedByGlobal: 'a global row with the same id wins — this row has no effect',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

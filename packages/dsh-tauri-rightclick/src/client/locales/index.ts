@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../constants'
+import { es } from './es'
 
 const zh = {
   renameSession: '重命名会话',
@@ -145,4 +146,4 @@ const en: Record<keyof typeof zh, string> = {
   editPositionUnknown: 'Could not determine the editing position',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

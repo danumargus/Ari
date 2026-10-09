@@ -23,6 +23,7 @@ import { effectContext } from '../utils/context'
 export interface LocaleDicts<D extends LocaleDict = LocaleDict> {
   zh: D
   en: Record<keyof D & string, string>
+  es?: Record<keyof D & string, string>
 }
 
 /** 安装所需的最小上下文面（`ctx.effect(registerLocale)` 时由 `this` 提供）。 */
@@ -101,6 +102,7 @@ export function defineLocale<const NS extends string, const D extends LocaleDict
 
   const zh: LocaleDict = dicts.zh
   const en: LocaleDict = dicts.en
+  const es: LocaleDict | undefined = dicts.es
   let live: Translate | undefined
   let installations = 0
 
@@ -108,7 +110,9 @@ export function defineLocale<const NS extends string, const D extends LocaleDict
     const translate = live
     if (translate !== undefined)
       return translate(key, params)
-    const template = (activeLocale() === 'en' ? en[key] : zh[key]) ?? en[key] ?? key
+    const language = activeLocale().toLowerCase().split('-')[0]
+    const dictionary = language === 'zh' ? zh : language === 'es' ? es : en
+    const template = dictionary?.[key] ?? en[key] ?? key
     return interpolate(template, params)
   }
 
@@ -127,6 +131,9 @@ export function defineLocale<const NS extends string, const D extends LocaleDict
     // 插件命名空间是运行期字符串，走三参 untyped 形态逐语言登记。
     const unregisterZh = locale.register(namespace, 'zh', zh)
     const unregisterEn = locale.register(namespace, 'en', en)
+    const unregisterSpanish = es === undefined
+      ? []
+      : ['es', 'es-ES'].map(id => locale.register(namespace, id, es))
     sync()
     const unsubscribe = locale.subscribe(sync)
 
@@ -138,6 +145,8 @@ export function defineLocale<const NS extends string, const D extends LocaleDict
       unsubscribe()
       unregisterZh()
       unregisterEn()
+      for (const unregister of unregisterSpanish)
+        unregister()
       installations -= 1
       if (installations === 0 && live === bound)
         live = undefined

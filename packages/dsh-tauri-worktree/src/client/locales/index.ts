@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../constants'
+import { es } from './es'
 
 const zh = {
   close: '关闭',
@@ -69,4 +70,4 @@ const en: Record<keyof typeof zh, string> = {
   sessionWorkingTreeBadge: 'Worktree',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

@@ -1,0 +1,18 @@
+export const es = {
+  back: 'Volver a la aplicación',
+  search: 'Buscar ajustes…',
+  settings: 'Configuración',
+  noResults: 'No hay ajustes coincidentes',
+  resumeTask: 'Continuar tarea',
+  recoverContentRisk: 'Recuperar de forma segura y continuar',
+  im: 'Mensajería',
+  chooseWorkspace: 'Elegir espacio de trabajo',
+  ungrouped: 'Sin agrupar',
+  addWorkspace: 'Añadir espacio de trabajo…',
+  close: 'Cerrar',
+  cancel: 'Cancelar',
+  loading: 'Cargando espacios de trabajo…',
+  folderErrorTitle: 'No se pudo abrir la carpeta',
+  folderErrorRetry: 'Elegir de nuevo',
+  apply: 'Aplicar',
+}

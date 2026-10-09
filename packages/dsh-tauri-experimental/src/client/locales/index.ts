@@ -9,6 +9,7 @@
 import type { LocaleKey } from '../types'
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../constants'
+import { es } from './es'
 
 /** zh 字典（键集合的权威）。 */
 const zh = {
@@ -26,4 +27,4 @@ const en: Record<LocaleKey, string> = {
   pasteChipTitled: '{title} · {count} chars',
 }
 
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })

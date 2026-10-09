@@ -1,5 +1,6 @@
 import { defineLocale } from 'dsh-tauri/client'
 import { PLUGIN_ID } from '../../shared/constants'
+import { es } from './es'
 
 const zh = {
   turnComplete: '轮次完成通知',
@@ -66,4 +67,4 @@ const en: Record<keyof typeof zh, string> = {
 }
 
 /** 通知设置的文案字典；`registerLocale` 必须由 `ctx.effect` 调用（保持未绑定 this）。 */
-export const locale = defineLocale(PLUGIN_ID, { zh, en })
+export const locale = defineLocale(PLUGIN_ID, { zh, en, es })
