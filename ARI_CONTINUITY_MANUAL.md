@@ -710,3 +710,45 @@ For immediate live validation, the installed Nightly `dsh-tauri-extension/dist/c
 - no plugin build was run during this work
 
 One recovery startup during this work took about 101.9 s after a singleton/zombie-runtime incident and a temporary UTF-8 BOM manifest error. The manifest error was fixed, but that long startup must not be attributed to Affect or Browser Router without a clean controlled A/B measurement.
+
+## 27. Spanish locale completion, unified connections and navigation-mode selector (2026-10-09)
+
+### Spanish locale source state
+A complete Spanish pass was integrated across the desktop shell and Tauri packages.
+
+Verified source metric:
+- `src/i18n/locales/en-US.json`: 657 keys
+- `src/i18n/locales/es-ES.json`: 673 keys
+- missing Spanish keys relative to English: 0
+- identical English/Spanish values remaining are technical labels/brands such as GitHub, PID, CPU, Nord, Solarized and Local
+
+The shared Tauri locale helper now accepts an optional Spanish dictionary and registers both `es` and `es-ES`, with tests covering aliases and interpolation. Package-local Spanish dictionaries were added for archive, experimental, extension, mobile UI, model, notification, pet, right-click, scheduler, SSH, UI playground, UI and worktree surfaces. Extension-specific plugin manager, Market and account Spanish dictionaries are registered explicitly.
+
+Commit: `7774b5d feat(i18n): complete Spanish desktop locales`.
+
+Important runtime caveat: source locale coverage is complete for Ari-owned surfaces, but third-party plugins can still render their own English literals. `@xmanrui/dsh-im` is one confirmed example and must be translated separately rather than misreported as complete.
+
+### Unified Connections & MCP private center
+A private profile plugin `dsh-ari-connections` is active in the current `web` profile. It presents a unified inventory of providers, bridges, cloud services, web connections and the actual MCP rows from the official MCP manager.
+
+Live UI verification:
+- 41 total connection cards
+- 30 currently available/configured
+- 10 MCP rows
+- filters for MCP, provider, bridge, cloud, tunnel, gateway, webview, web session, web provider and browser
+- MCP URLs are redacted before display; query strings/tokens are never rendered
+- MCP cards expose Check and Enable/Disable actions through the official extension endpoints
+
+This private inventory is intentionally outside public source because it reflects Gus's machine/profile state.
+
+### Browser navigation selector
+A public package `packages/dsh-browser-mode-ui` was added to Ari. It is deliberately small and separate from `dsh-browser-router`:
+- visible selector belongs in `conversation.session.header.actions`
+- options are `Local`, `Móvil` and `Nube`
+- host route: `/api/desktop/ari-browser-mode`
+- selected mode is persisted in `~/.dsh/browser-router.json`
+- the router remains responsible for actual CDP tools and reads the same file
+
+Live route verification returned `active: mobile` with mobile endpoint `127.0.0.1:9222`, local endpoint `127.0.0.1:9223`, and cloud currently unconfigured.
+
+No general Ari build was run for this block.
